@@ -9,7 +9,6 @@ import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import { images } from "../../images";
 import { operations } from "../../utilities/constants";
-import { stillTiles } from "../../utilities/constants";
 import { generateEmptyGrid } from "../../utilities/gridGeneration";
 import { generatePrefabGrid } from "../../utilities/gridGeneration";
 import Slider from "@material-ui/core/Slider";
@@ -111,79 +110,98 @@ const MainContainer = () => {
   return (
     <>
       <div className={classes.root}>
-        <div className={gridClass}>
-          {data.map((rows, i) =>
-            rows.map((col, j) => (
-              <div
-                key={`${i}-${j}`}
-                onClick={() => {
-                  if (!running) {
-                    const newGrid = produce(data, dataCopy => {
-                      dataCopy[i][j] = dataCopy[i][j] ? 0 : 1;
-                    });
-                    setData(newGrid);
-                  }
-                }}
-                className={classNames(
-                  data[i][j] ? classes.alive : classes.dead,
-                  classes.gridItem
-                )}
+        <div className={classes.leftColumn}>
+          <div className={gridClass}>
+            {data.map((rows, i) =>
+              rows.map((col, j) => (
+                <div
+                  key={`${i}-${j}`}
+                  onClick={() => {
+                    if (!running) {
+                      const newGrid = produce(data, dataCopy => {
+                        dataCopy[i][j] = dataCopy[i][j] ? 0 : 1;
+                      });
+                      setData(newGrid);
+                    }
+                  }}
+                  className={classNames(
+                    data[i][j] ? classes.alive : classes.dead,
+                    classes.gridItem
+                  )}
+                />
+              ))
+            )}
+          </div>
+          <div className={classes.menubar}>
+            <Button
+              onClick={() => {
+                setRunning(!running);
+                if (!running) {
+                  runningRef.current = true;
+                  runSimulation();
+                }
+              }}
+              className={classes.button}
+            >
+              {running ? "Stop" : "Start"}
+            </Button>
+            <Button
+              onClick={() => {
+                !running && setData(generateEmptyGrid(gridSize, setGeneration));
+              }}
+              className={classes.button}
+            >
+              Clear
+            </Button>
+            <FormControl className={classes.formControl}>
+              <InputLabel id="grid-size-select-label">Grid Size</InputLabel>
+              <Select
+                labelId="grid-size-select-label"
+                id="grid-size-select"
+                value={gridSize}
+                onChange={handleChange}
+              >
+                <MenuItem value={25}>25 x 25</MenuItem>
+                <MenuItem value={30}>30 x 30</MenuItem>
+                <MenuItem value={35}>35 x 35</MenuItem>
+                <MenuItem value={40}>40 x 40</MenuItem>
+              </Select>
+            </FormControl>
+
+            <div className={classes.slider}>
+              <Typography id="speed-slider" gutterBottom>
+                Speed (s)
+              </Typography>
+              <Slider
+                defaultValue={0.5}
+                getAriaValueText={valueText}
+                aria-labelledby="speed"
+                step={0.1}
+                marks
+                min={0.1}
+                max={2.0}
+                valueLabelDisplay="auto"
+                onChange={onSpeedChange}
               />
-            ))
-          )}
+            </div>
+            <span>Generation: </span>
+            <span>{generation}</span>
+          </div>
+          <div className={classes.about}>
+            <h1 className={classes.h1}>About This Game</h1>
+            <p>
+              Conway's Game of Life was created by a British mathematician John
+              Conway in 1970. The evolution of the cells is
+              <br />
+              determined by its initial state. Once started a simple set of
+              rules is followed that determines whether the cell stays
+              <br />
+              alive or dies (Turing machine).
+            </p>
+          </div>
         </div>
-        <Button
-          onClick={() => {
-            setRunning(!running);
-            if (!running) {
-              runningRef.current = true;
-              runSimulation();
-            }
-          }}
-        >
-          {running ? "Stop" : "Start"}
-        </Button>
-        <Button
-          onClick={() => {
-            !running && setData(generateEmptyGrid(gridSize, setGeneration));
-          }}
-        >
-          Clear
-        </Button>
-        <FormControl className={classes.formControl}>
-          <InputLabel id="grid-size-select-label">Grid Size</InputLabel>
-          <Select
-            labelId="grid-size-select-label"
-            id="grid-size-select"
-            value={gridSize}
-            onChange={handleChange}
-          >
-            <MenuItem value={25}>25 x 25</MenuItem>
-            <MenuItem value={30}>30 x 30</MenuItem>
-            <MenuItem value={35}>35 x 35</MenuItem>
-            <MenuItem value={40}>40 x 40</MenuItem>
-          </Select>
-        </FormControl>
-        <div className={classes.slider}>
-          <Typography id="speed-slider" gutterBottom>
-            Speed (s)
-          </Typography>
-          <Slider
-            defaultValue={0.5}
-            getAriaValueText={valueText}
-            aria-labelledby="speed"
-            step={0.1}
-            marks
-            min={0.1}
-            max={2.0}
-            valueLabelDisplay="auto"
-            onChange={onSpeedChange}
-          />
-        </div>
-        <span>Generation: </span>
-        <span>{generation}</span>
       </div>
-      <div className={classes.root}>
+      <div className={classes.rightColumn}>
         {images.map(image => (
           <ButtonBase
             focusRipple
@@ -216,6 +234,19 @@ const MainContainer = () => {
             </span>
           </ButtonBase>
         ))}
+        <div className={classes.rules}>
+          <h1 className={classes.h1}>Rules</h1>
+          <p>
+            <ul>
+              <li>A live cell with less than 2 neighbors dies</li>
+              <li>
+                A live cell with 2 - 3 neighbors lives to the next generation
+              </li>
+              <li>A live cell with more than 3 neighbors dies</li>
+              <li>Any dead cell with 3 neighbors comes back to life</li>
+            </ul>
+          </p>
+        </div>
       </div>
     </>
   );

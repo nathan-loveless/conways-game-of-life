@@ -2,10 +2,32 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Container } from "@material-ui/core";
 
 export const sharedStyles = makeStyles(theme => ({
+  mainContainer: {
+    //background: "#ffcc33",
+    width: "100%",
+    height: "100%"
+  },
   root: {
-    minWidth: "75%",
     minHeight: "100%",
     float: "left"
+  },
+
+  leftColumn: {
+    display: "flex",
+    flexDirection: "column"
+  },
+
+  rightColumn: {
+    display: "flex",
+    flexDirection: "column",
+    padding: "0px 5px 5px 10px"
+  },
+
+  menubar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "10px"
   },
 
   gridDefault: {
@@ -33,16 +55,17 @@ export const sharedStyles = makeStyles(theme => ({
     minWidth: "20%",
     minHeight: "20%"
   },
-  gridContainer: {
-    display: "flex",
-    flexDirection: "row",
-    minWidth: "0"
-  },
   gridItem: {
     border: "1px solid grey",
     backgroundColor: "white"
-    // width: "30px",
-    // height: "30px"
+  },
+  button: {
+    background: "#cce6ff",
+    color: "black",
+    "&:hover": {
+      background: "#4da6ff",
+      color: "white"
+    }
   },
   alive: {
     background: "black"
@@ -50,6 +73,8 @@ export const sharedStyles = makeStyles(theme => ({
   dead: {
     background: "white"
   },
+  rules: {},
+
   formControl: {
     margin: theme.spacing(1),
     minWidth: 120
@@ -57,15 +82,10 @@ export const sharedStyles = makeStyles(theme => ({
   selectEmpty: {
     marginTop: theme.spacing(2)
   },
-  // root: {
-  //   display: 'flex',
-  //   flexWrap: 'wrap',
-  //   minWidth: 300,
-  //   width: '100%',
-  // },
   image: {
     position: "relative",
     height: 100,
+    marginBottom: "10px",
     [theme.breakpoints.down("xs")]: {
       width: "100% !important", // Overrides inline-style
       height: 100
