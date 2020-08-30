@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import GridDisplay from "../GridDisplay/GridDisplay";
+import React, { useState, useCallback, useRef } from "react";
 import { sharedStyles } from "../../material-ui/styles/sharedStyles";
 import { Button, ButtonBase, Typography } from "@material-ui/core";
 import produce from "immer";
@@ -12,6 +11,7 @@ import { operations } from "../../utilities/constants";
 import { generateEmptyGrid } from "../../utilities/gridGeneration";
 import { generatePrefabGrid } from "../../utilities/gridGeneration";
 import Slider from "@material-ui/core/Slider";
+import { generateData } from "../../utilities/gridGeneration";
 
 let classNames = require("classnames");
 
@@ -19,24 +19,50 @@ const MainContainer = () => {
   const classes = sharedStyles();
 
   const [speed, setSpeed] = useState(500);
-  const speedRef = useRef(speed);
-  speedRef.current = speed;
   const [gridClass, setGridClass] = useState(classes.gridDefault);
   const [gridSize, setGridSize] = useState(25);
   const [generation, setGeneration] = useState(0);
   const [running, setRunning] = useState(false);
+  const [data, setData] = useState(() => {
+    return generateEmptyGrid(25, setGeneration);
+  });
+
+  // We need immediate access to some states, so we will use refs.
+  const speedRef = useRef(speed);
+  speedRef.current = speed;
+
   const runningRef = useRef(running);
   runningRef.current = running;
 
   const genRef = useRef(generation);
   genRef.current = generation;
 
-  const [data, setData] = useState(() => {
-    return generateEmptyGrid(25, setGeneration);
-  });
+  // Dynamically setting the class for the grid size
+  const getClassName = value => {
+    switch (value) {
+      case 30: {
+        return classes.gridSmall;
+      }
+      case 35: {
+        return classes.gridMedium;
+      }
+      case 40: {
+        return classes.gridLarge;
+      }
+      default: {
+        return classes.gridDefault;
+      }
+    }
+  };
 
-  const valueText = value => {
-    return `${value}s`;
+  const handleChange = event => {
+    setGridSize(event.target.value);
+    setGridClass(getClassName(event.target.value));
+    setData(generateEmptyGrid(event.target.value, setGeneration));
+  };
+
+  const handlePreset = event => {
+    setData(generatePrefabGrid(gridSize, event.currentTarget.value));
   };
 
   const onSpeedChange = (event, value) => {
@@ -44,32 +70,7 @@ const MainContainer = () => {
     speedRef.current = 1000 * value;
   };
 
-  const handlePreset = event => {
-    setData(generatePrefabGrid(gridSize, event.currentTarget.value));
-  };
-
-  const handleChange = event => {
-    setGridSize(event.target.value);
-    switch (event.target.value) {
-      case 30: {
-        setGridClass(classes.gridSmall);
-        break;
-      }
-      case 35: {
-        setGridClass(classes.gridMedium);
-        break;
-      }
-      case 40: {
-        setGridClass(classes.gridLarge);
-        break;
-      }
-      default: {
-        setGridClass(classes.gridDefault);
-      }
-    }
-    setData(generateEmptyGrid(event.target.value, setGeneration));
-  };
-
+  // This is where we apply our rules and determine what cell lives, dies or is born
   const runSimulation = useCallback(() => {
     if (!runningRef.current) {
       return;
@@ -77,33 +78,8 @@ const MainContainer = () => {
     setGeneration(genRef.current + 1);
 
     setData(data => {
-      return produce(data, dataCopy => {
-        for (let i = 0; i < gridSize; i++) {
-          for (let j = 0; j < gridSize; j++) {
-            let neighbors = 0;
-            operations.forEach(([x, y]) => {
-              const newI = i + x;
-              const newJ = j + y;
-              if (
-                newI >= 0 &&
-                newI < gridSize &&
-                newJ >= 0 &&
-                newJ < gridSize
-              ) {
-                neighbors += data[newI][newJ];
-              }
-            });
-
-            if (neighbors < 2 || neighbors > 3) {
-              dataCopy[i][j] = 0;
-            } else if (data[i][j] === 0 && neighbors === 3) {
-              dataCopy[i][j] = 1;
-            }
-          }
-        }
-      });
+      return generateData(data, gridSize);
     });
-    console.log(speed);
     setTimeout(runSimulation, speedRef.current);
   }, []);
 
@@ -174,7 +150,6 @@ const MainContainer = () => {
               </Typography>
               <Slider
                 defaultValue={0.5}
-                getAriaValueText={valueText}
                 aria-labelledby="speed"
                 step={0.1}
                 marks

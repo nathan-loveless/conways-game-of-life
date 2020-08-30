@@ -2,6 +2,8 @@ import { stillTilesIndexes } from "./constants";
 import { quickDieIndexes } from "./constants";
 import { oscillatorIndexes } from "./constants";
 import { infiniteRepeatingIndexes } from "./constants";
+import { operations } from "./constants";
+import produce from "immer";
 
 export const generateEmptyGrid = (newSize, setGeneration) => {
   const grid = [];
@@ -52,4 +54,27 @@ export const generatePrefabGrid = (size, prefab) => {
     }
   }
   return grid;
+};
+
+export const generateData = (data, gridSize) => {
+  return produce(data, dataCopy => {
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        let neighbors = 0;
+        operations.forEach(([x, y]) => {
+          const newI = i + x;
+          const newJ = j + y;
+          if (newI >= 0 && newI < gridSize && newJ >= 0 && newJ < gridSize) {
+            neighbors += data[newI][newJ];
+          }
+        });
+
+        if (neighbors < 2 || neighbors > 3) {
+          dataCopy[i][j] = 0;
+        } else if (data[i][j] === 0 && neighbors === 3) {
+          dataCopy[i][j] = 1;
+        }
+      }
+    }
+  });
 };
